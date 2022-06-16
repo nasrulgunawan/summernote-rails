@@ -1,30 +1,33 @@
 class SummernoteCleaner
   BLOCK_TAGS = [
-    'h1',
-    'h2',
-    'h3',
-    'h4',
-    'h5',
-    'h6',
-    'p',
-    'ul',
-    'ol',
-    'dl'
+    'h1'.freeze,
+    'h2'.freeze,
+    'h3'.freeze,
+    'h4'.freeze,
+    'h5'.freeze,
+    'h6'.freeze,
+    'p'.freeze,
+    'ul'.freeze,
+    'ol'.freeze,
+    'dl'.freeze
   ]
+
+  DEFAULT_BLOCK = 'p'.freeze
 
   def self.clean(code)
     new(code).clean
   end
 
   def initialize(code)
-    @code = code
-    @code = @code.gsub("<p>\n</p>", "")
-                 .gsub("<p></p>", "")
-                 .gsub("<p><br></p>", "")
+    @code = code.gsub("<p>\n</p>", "")
+                .gsub("<p></p>", "")
+                .gsub("<p><br></p>", "")
     @clean_code = ''
     @current_block_tag = nil
     @open_block_tag_found = nil
     @close_block_tag_found = nil
+    @open_tags = {}
+    @close_tags = {}
   end
 
   def clean
@@ -33,43 +36,61 @@ class SummernoteCleaner
         log "starts_with_open_block_tag #{@open_block_tag_found}"
         unless @current_block_tag.nil?
           log "Opening a block in a block, we need to close the previous one"
-          @clean_code += close(@current_block_tag)
+          @clean_code.concat close(@current_block_tag)
         end
         log "Move the open block from code to clean code"
-        @clean_code += @code.slice!(0, open_current.length)
+        transfer open_current.length
         @current_block_tag = @open_block_tag_found
         @open_block_tag_found = nil
       elsif starts_with_close_block_tag?
         log "starts_with_close_block_tag #{@close_block_tag_found}"
         if @close_block_tag_found == @current_block_tag
           log "Everything is logical, we close what was opened"
-          @clean_code += @code.slice!(0, close_current.length)
+          transfer close_current.length
         else
           log "Mismatch, the closing tag is not what it should be. We need to remove it, and add the correct one instead"
-          @code.slice!(0, close(@close_block_tag_found).length)
-          @clean_code += close_current
+          remove close(@close_block_tag_found).length
+          @clean_code.concat close_current
         end
         @current_block_tag = nil
         @close_block_tag_found = nil
       else
         if in_block?
-          @clean_code += @code.slice!(0)
+          transfer 1
         else
           log "not in a block, we open a p"
-          @current_block_tag = 'p'
-          @clean_code += open_current
+          @current_block_tag = DEFAULT_BLOCK
+          @clean_code.concat open_current
         end
       end
       log @clean_code
     end
     if in_block?
       log "still in a block, we close with a #{@current_block_tag}"
-      @clean_code += close_current
+      @clean_code.concat close_current
     end
+    log @clean_code
     @clean_code
   end
 
   protected
+
+  def transfer(length)
+    add length
+    remove length
+  end
+
+  # 0..0 means first character
+  def add(length)
+    # Concat is much lighter than +=
+    # https://www.rubyguides.com/2019/07/ruby-string-concatenation/
+    @clean_code.concat @code[0..length-1].freeze
+  end
+
+  # 1..-1 means everything but the first
+  def remove(length)
+    @code = @code[length..-1].freeze
+  end
 
   def starts_with_open_block_tag?
     BLOCK_TAGS.each do |tag|
@@ -96,11 +117,11 @@ class SummernoteCleaner
   end
 
   def open(tag)
-    "<#{tag}>"
+    @open_tags[tag] ||= "<#{tag}>".freeze
   end
 
   def close(tag)
-    "</#{tag}>"
+    @close_tags[tag] ||= "</#{tag}>".freeze
   end
 
   def open_current

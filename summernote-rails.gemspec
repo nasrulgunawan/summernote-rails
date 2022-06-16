@@ -23,4 +23,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "benchmark-memory"
+  spec.add_development_dependency "memory_profiler"
 end
