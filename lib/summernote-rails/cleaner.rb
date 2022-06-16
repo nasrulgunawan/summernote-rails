@@ -47,6 +47,9 @@ class SummernoteCleaner
         if @close_block_tag_found == @current_block_tag
           log "Everything is logical, we close what was opened"
           transfer close_current.length
+        elsif @current_block_tag == nil
+          log "Nothing opened, just remove it"
+          remove close(@close_block_tag_found).length
         else
           log "Mismatch, the closing tag is not what it should be. We need to remove it, and add the correct one instead"
           remove close(@close_block_tag_found).length
