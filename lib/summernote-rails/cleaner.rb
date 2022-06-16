@@ -11,8 +11,9 @@ class SummernoteCleaner
     'p'.freeze,
     'ul'.freeze,
     'ol'.freeze,
-    'dl'.freeze
-  ]
+    'dl'.freeze,
+    'div'.freeze
+  ].freeze
 
   DEFAULT_BLOCK = 'p'.freeze
 
