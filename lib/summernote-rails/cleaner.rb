@@ -22,6 +22,8 @@ class SummernoteCleaner
     @code = code.gsub("<p>\n</p>", "")
                 .gsub("<p></p>", "")
                 .gsub("<p><br></p>", "")
+    @max_loops = @code.length * 2
+    @current_loop = 0
     @clean_code = ''
     @current_block_tag = nil
     @open_block_tag_found = nil
@@ -31,7 +33,7 @@ class SummernoteCleaner
   end
 
   def clean
-    while @code.length > 0 do
+    while @code.length > 0 && @max_loops > @current_loop do
       if starts_with_open_block_tag?
         log "starts_with_open_block_tag #{@open_block_tag_found}"
         unless @current_block_tag.nil?
@@ -67,6 +69,7 @@ class SummernoteCleaner
         end
       end
       log @clean_code
+      @current_loop += 1
     end
     if in_block?
       log "still in a block, we close with a #{@current_block_tag}"
