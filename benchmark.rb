@@ -1,3 +1,7 @@
+require 'rubygems'
+require 'bundler/setup'
+Bundler.require(:default)
+
 require "benchmark/memory"
 require "summernote-rails"
 require "summernote-rails/cleaner"
