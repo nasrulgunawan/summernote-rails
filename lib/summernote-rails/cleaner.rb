@@ -1,3 +1,5 @@
+require 'nokogiri'
+
 class SummernoteCleaner
   BLOCK_TAGS = [
     'h1'.freeze,
@@ -30,50 +32,59 @@ class SummernoteCleaner
     @close_tags = {}
   end
 
+  # def clean
+  #   while @code.length > 0 do
+  #     if starts_with_open_block_tag?
+  #       log "starts_with_open_block_tag #{@open_block_tag_found}"
+  #       unless @current_block_tag.nil?
+  #         log "Opening a block in a block, we need to close the previous one"
+  #         @clean_code.concat close(@current_block_tag)
+  #       end
+  #       log "Move the open block from code to clean code"
+  #       transfer open_current.length
+  #       @current_block_tag = @open_block_tag_found
+  #       @open_block_tag_found = nil
+  #     elsif starts_with_close_block_tag?
+  #       log "starts_with_close_block_tag #{@close_block_tag_found}"
+  #       if @close_block_tag_found == @current_block_tag
+  #         log "Everything is logical, we close what was opened"
+  #         transfer close_current.length
+  #       elsif @current_block_tag == nil
+  #         log "Nothing opened, just remove it"
+  #         remove close(@close_block_tag_found).length
+  #       else
+  #         log "Mismatch, the closing tag is not what it should be. We need to remove it, and add the correct one instead"
+  #         remove close(@close_block_tag_found).length
+  #         @clean_code.concat close_current
+  #       end
+  #       @current_block_tag = nil
+  #       @close_block_tag_found = nil
+  #     else
+  #       if in_block?
+  #         transfer 1
+  #       else
+  #         log "not in a block, we open a p"
+  #         @current_block_tag = DEFAULT_BLOCK
+  #         @clean_code.concat open_current
+  #       end
+  #     end
+  #     log @clean_code
+  #   end
+  #   if in_block?
+  #     log "still in a block, we close with a #{@current_block_tag}"
+  #     @clean_code.concat close_current
+  #   end
+  #   log @clean_code
+  #   @clean_code
+  # end
+
   def clean
-    while @code.length > 0 do
-      if starts_with_open_block_tag?
-        log "starts_with_open_block_tag #{@open_block_tag_found}"
-        unless @current_block_tag.nil?
-          log "Opening a block in a block, we need to close the previous one"
-          @clean_code.concat close(@current_block_tag)
-        end
-        log "Move the open block from code to clean code"
-        transfer open_current.length
-        @current_block_tag = @open_block_tag_found
-        @open_block_tag_found = nil
-      elsif starts_with_close_block_tag?
-        log "starts_with_close_block_tag #{@close_block_tag_found}"
-        if @close_block_tag_found == @current_block_tag
-          log "Everything is logical, we close what was opened"
-          transfer close_current.length
-        elsif @current_block_tag == nil
-          log "Nothing opened, just remove it"
-          remove close(@close_block_tag_found).length
-        else
-          log "Mismatch, the closing tag is not what it should be. We need to remove it, and add the correct one instead"
-          remove close(@close_block_tag_found).length
-          @clean_code.concat close_current
-        end
-        @current_block_tag = nil
-        @close_block_tag_found = nil
-      else
-        if in_block?
-          transfer 1
-        else
-          log "not in a block, we open a p"
-          @current_block_tag = DEFAULT_BLOCK
-          @clean_code.concat open_current
-        end
-      end
-      log @clean_code
-    end
-    if in_block?
-      log "still in a block, we close with a #{@current_block_tag}"
-      @clean_code.concat close_current
-    end
-    log @clean_code
-    @clean_code
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(@code)
+    fragment.xpath("text()").wrap("<p></p>")
+    fragment.to_html
+            .gsub("<p>\n</p>", "")
+            .gsub("<p></p>", "")
+            .gsub("<p><br></p>", "")
   end
 
   protected
