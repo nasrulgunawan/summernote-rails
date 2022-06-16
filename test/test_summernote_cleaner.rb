@@ -49,7 +49,7 @@ class TestSummernoteCleaner < Test::Unit::TestCase
   end
 
   def test_closing_paragraph
-    text = "test</p><p>test 2</p>"
+    text = "<p>test</p></p><p>test 2</p>"
     assert_equal '<p>test</p><p>test 2</p>', SummernoteCleaner.clean(text)
   end
 
